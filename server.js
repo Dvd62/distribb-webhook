@@ -22,6 +22,15 @@ app.get('/health', (req, res) => {
 // Distribb webhook endpoint
 app.post('/webhooks/distribb', handleDistribbWebhook);
 
+// Also support root path for Railway
+app.post('/', handleDistribbWebhook);
+
+// Debug: log all requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 // List received articles (for testing)
 app.get('/articles', async (req, res) => {
   const fs = require('fs').promises;
@@ -43,6 +52,16 @@ app.get('/articles', async (req, res) => {
   } catch (error) {
     res.json({ articles: [], error: error.message });
   }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Not found', 
+    path: req.path,
+    method: req.method,
+    available: ['/health', '/webhooks/distribb', '/articles', '/']
+  });
 });
 
 // Start server
